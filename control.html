@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Controlling Your Smart Lamp</title>
+
+        <!-- CSS -->
+        <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:400,100,300,500">
+        <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+        <link rel="stylesheet" href="assets/font-awesome/css/font-awesome.min.css">
+		<link rel="stylesheet" href="assets/css/form-elements.css">
+        <link rel="stylesheet" href="assets/css/style.css">
+
+		<link rel="stylesheet" type="text/css" href="assets/css/normalize.css" />
+		<link rel="stylesheet" type="text/css" href="assets/css/demo.css" />
+		<link rel="stylesheet" type="text/css" href="assets/css/component.css" />
+		<script src="assets/js/modernizr.custom.js"></script>
+		
+		<link rel="stylesheet" type="text/css" href="assets/css/defaultb.css" />
+		<link rel="stylesheet" type="text/css" href="assets/css/componentb.css" />
+		<script src="assets/js/modernizr.customb.js"></script>
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+		<script type="text/javascript" src="assets/js/canvasjs.min.js"></script>
+
+        <!-- Favicon and touch icons -->
+        
+        <style type="text/css">
+        	.slidingPanel{
+        		transition: all.3s;
+        	}
+              
+                .list-inline>li {
+                    margin-right: 30px;
+                }
+               
+
+        </style>
+
+
+		<script>
+	 	const source = new EventSource('http://192.168.43.140');
+        function sendData() {
+			//var xhttp = new XMLHttpRequest();
+			var checkboxes = document.getElementsByName('c1');
+			var checkboxesChecked = new Array(5);
+			
+			for (var i=0; i<checkboxes.length; i++) {
+				checkboxesChecked[i] = 1;
+	    		if (checkboxes[i].checked) {
+	      	 		 checkboxesChecked[i]=0;
+	    	 		}
+ 	 		}
+		
+
+           var url = 'http://192.168.43.140/@'+checkboxesChecked[0]+':'+checkboxesChecked[1]+':'+checkboxesChecked[2]+':'+checkboxesChecked[3]+':'+checkboxesChecked[4];
+
+          //  xhttp.open("GET", url, true);
+          //  xhttp.send();
+            window.location.href = url; 
+    	return false;
+	}
+	</script>  
+
+
+    </head>
+
+    <body>
+
+		
+		<!-- Top menu -->
+		<nav class="navbar navbar-inverse navbar-no-bg" role="navigation">
+			<div class="container">
+				<div class="navbar-header">
+					<img src="assets/ico/logo@2x.png" alt="Mountain View" style="width:288px;height:72px;">
+				</div>
+				<!-- Collect the nav links, forms, and other content for toggling -->
+				<div class="collapse navbar-collapse" id="top-navbar-1">
+					<ul class="nav navbar-nav navbar-right">
+						<li>
+                                                    <div id ="initializing">
+							<span class="li-text">
+								Manual Controlling...
+							</span> 
+						</div>
+							
+						</li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+
+        <!-- Top content -->
+        
+        <div class="top-content">
+   
+            <div class="inner-bg" id = "message">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-10 col-sm-offset-1 form-box">
+
+	                    <form role="form" onsubmit="return sendData();"  action="" method="post" class="ac-custom ac-checkbox ac-cross" autocomplete="off">
+		              
+						 						   
+		                    <div class="slidingPanel">	
+								<h2>Select the panel you want to switch on . . . </h2>
+								<ul>
+								<li><input id="c1" name="c1" type="checkbox"><label for="cb1">Panel 1</label></li>
+								<li><input id="c1" name="c1" type="checkbox"><label for="cb2">Panel 2</label></li>
+								<li><input id="c1" name="c1" type="checkbox"><label for="cb3">Panel 3</label></li>
+								<li><input id="c1" name="c1" type="checkbox"><label for="cb4">Panel 4</label></li>
+								<li><input id="c1" name="c1" type="checkbox"><label for="cb5">Panel 5</label></li>
+							</ul>
+								<div class="col-md-4 center-block">
+									<button type="submit" class="btn">Send Data!
+									</button>
+									
+								</div>
+								
+		                   </div>
+			                </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            
+        </div>
+
+
+        <!-- Javascript -->
+        <script src="assets/js/jquery-1.11.1.min.js"></script>
+        <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+        <script src="assets/js/jquery.backstretch.min.js"></script>
+        <script src="assets/js/retina-1.1.0.min.js"></script>
+        <script src="assets/js/scripts.js"></script>
+        
+        <!--[if lt IE 10]>
+            <script src="assets/js/placeholder.js"></script>
+        <![endif]-->
+        <script type="text/javascript">
+
+        	$(document).ready(function(){
+        		$("div.slidingPanel").hide();
+        		$(".slidingPanel").first().show();
+        	});
+        	$(".btn.next").click(function(e){
+        		e.preventDefault()
+        		$(this).closest(".slidingPanel").hide();//fadeOut(100).css("transform","translateX(30px)");
+
+        		$(this).closest(".slidingPanel").next('.slidingPanel').fadeIn(500);
+        	});
+        	$(".btn.back").click(function(e){
+        		e.preventDefault()
+        		$(this).closest(".slidingPanel").hide();//fadeOut(100).css("transform","translateX(-30px)");
+
+        		$(this).closest(".slidingPanel").prev('.slidingPanel').fadeIn(500);
+        	});
+
+        </script>
+			<script src="assets/js/classieb.js"></script>
+		<script>
+			var buttons7Click = Array.prototype.slice.call( document.querySelectorAll( '#btn-click button' ) ),
+				buttons9Click = Array.prototype.slice.call( document.querySelectorAll( 'button.btn-8g' ) ),
+				totalButtons7Click = buttons7Click.length,
+				totalButtons9Click = buttons9Click.length;
+
+			buttons7Click.forEach( function( el, i ) { el.addEventListener( 'click', activate, false ); } );
+			buttons9Click.forEach( function( el, i ) { el.addEventListener( 'click', activate, false ); } );
+
+			function activate() {
+				var self = this, activatedClass = 'btn-activated';
+
+				if( classie.has( this, 'btn-7h' ) ) {
+					// if it is the first of the two btn-7h then activatedClass = 'btn-error';
+					// if it is the second then activatedClass = 'btn-success'
+					activatedClass = buttons7Click.indexOf( this ) === totalButtons7Click-2 ? 'btn-error' : 'btn-success';
+				}
+				else if( classie.has( this, 'btn-8g' ) ) {
+					// if it is the first of the two btn-8g then activatedClass = 'btn-success3d';
+					// if it is the second then activatedClass = 'btn-error3d'
+					activatedClass = buttons9Click.indexOf( this ) === totalButtons9Click-2 ? 'btn-success3d' : 'btn-error3d';
+				}
+
+				if( !classie.has( this, activatedClass ) ) {
+					classie.add( this, activatedClass );
+					setTimeout( function() { classie.remove( self, activatedClass ) }, 1000 );
+				}
+			}
+
+			document.querySelector( '.btn-7i' ).addEventListener( 'click', function() {
+				classie.add( document.querySelector( '#trash-effect' ), 'trash-effect-active' );
+			}, false );
+		</script>
+		<script src="assets/js/svgcheckbx.js"></script>
+    </body>
+
+</html>

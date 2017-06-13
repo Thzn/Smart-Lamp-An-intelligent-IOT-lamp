@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Calibrating Your Smart Lamp</title>
+
+        <!-- CSS -->
+        <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:400,100,300,500">
+        <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+        <link rel="stylesheet" href="assets/font-awesome/css/font-awesome.min.css">
+		<link rel="stylesheet" href="assets/css/form-elements.css">
+        <link rel="stylesheet" href="assets/css/style.css">
+
+		<link rel="stylesheet" type="text/css" href="assets/css/normalize.css" />
+		<link rel="stylesheet" type="text/css" href="assets/css/demo.css" />
+		<link rel="stylesheet" type="text/css" href="assets/css/component.css" />
+		<script src="assets/js/modernizr.custom.js"></script>
+		
+		<link rel="stylesheet" type="text/css" href="assets/css/defaultb.css" />
+		<link rel="stylesheet" type="text/css" href="assets/css/componentb.css" />
+		<script src="assets/js/modernizr.customb.js"></script>
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+		<script type="text/javascript" src="assets/js/canvasjs.min.js"></script>
+
+        <!-- Favicon and touch icons -->
+        
+        <style type="text/css">
+        	.slidingPanel{
+        		transition: all.3s;
+        	}
+              
+                .list-inline>li {
+                    margin-right: 30px;
+                }
+                #message{
+                    visibility: hidden;
+                }
+            .canvasjs-chart-credit {
+   				display: none;
+			}
+
+        </style>
+
+
+		<script>
+	    const source = new EventSource('http://192.168.43.140');
+            var started = 0;
+            var initialRound = 1;
+	    sonarReadings = new Array(5);
+	    previousReadings = new Array(5);
+            initialReadings = new Array(5);
+            calibratedReadings = new Array(5).fill(0);;
+	        
+	    source.onmessage = function (e) {
+	        previousReadings = sonarReadings.slice();
+                //document.getElementById("result").innerHTML += e.data + "<br>";
+	        var data = JSON.parse(e.data);
+	        
+	        if((data.sonar1/1)!=0){
+	        	sonarReadings[0] = data.sonar1/1;
+	        	}
+	        if((data.sonar2/1)!=0){
+	        	sonarReadings[1] = data.sonar2/1;
+	        	}
+	        if((data.sonar3/1)!=0){
+	        	sonarReadings[2] = data.sonar3/1;
+	        	}
+	        if((data.sonar4/1)!=0){
+	        	sonarReadings[3] = data.sonar4/1;
+	        	}
+	        if((data.sonar5/1)!=0){
+	        	sonarReadings[4] = data.sonar5/1;
+	        	}
+
+	                   
+                //storng the initial sensor readings
+                if(initialRound==1){
+                     for (var i = 0; i < 5; i++) {
+                           initialReadings[i]= sonarReadings[i];
+                }
+                initialRound = 0;
+	       }
+	    };
+	    
+	    
+	    window.onload = function () {
+          		                        
+			//initial value of dataPoints 
+			var dps = [
+			{label: "Sensor 1", y: sonarReadings[0]},
+			{label: "Sensor 2", y: sonarReadings[1]},
+			{label: "Sensor 3", y: sonarReadings[2]},
+			{label: "Sensor 4", y: sonarReadings[3]},
+			{label: "Sensor 5", y: sonarReadings[4]}
+			
+			];	
+                        
+   
+			var chart = new CanvasJS.Chart("chartContainer",{			
+				title: {
+					text: "Sensor Readings of Each Sensor"		
+				},
+				axisY: {				
+					suffix: " cm"
+				},		
+				legend :{
+					verticalAlign: 'bottom',
+					horizontalAlign: "center"
+				},
+				data: [
+				{
+					type: "column",	
+					bevelEnabled: true,				
+					indexLabel: "{y} cm",
+					dataPoints: dps					
+				}
+				]
+			});
+
+			
+			var updateInterval = 100;	
+			
+
+			var updateChart = function () {
+
+				for (var i = 0; i < dps.length; i++) {
+					
+	                                var yVal = sonarReadings[i];
+					var sensorColor;
+
+					// color of dataPoint dependent upon y value. 
+					
+					if(Math.abs(sonarReadings[i]-previousReadings[i])>10){
+	                                    sensorColor = "#FF6347";
+	                                  
+                                           //Checking whether the initial change
+                                            if(started==0){
+                                                document.getElementById("initializing").innerHTML = '<span class="li-text">Calibration Started ! </span>';
+                                                document.getElementById('message').style.visibility = 'visible';                                               
+                                                started=1;
+                                                }
+                                               
+                                            //Checking whether the reading is valid for calibration
+                                            
+                                            if((sonarReadings[i]/1>calibratedReadings[i]/1)&&(sonarReadings[i]<initialReadings[i]+5)){
+                                                calibratedReadings[i]=sonarReadings[i];
+                                            }
+	                                }else{
+	                                    sensorColor = "#708090";
+	                                }
+											
+					null;
+                                        
+					// updating the dataPoint
+					dps[i] = {label: "Sensor"+(i+1) , y: yVal, color: sensorColor};
+				};
+				chart.render();
+			};
+			
+			updateChart();		
+
+			// update chart after specified interval 
+			setInterval(function(){updateChart()}, updateInterval);
+
+		}
+	     
+        function sendData() {
+        var xhttp = new XMLHttpRequest();
+		sensorObjects = new Array(5).fill(null);
+
+		for (var j = 0; j < 5 ; j++) {
+			var radios = document.getElementsByName('c'+(j+1));
+			for (var i = 0, length = radios.length; i < length; i++) {
+			    if (radios[i].checked) {
+			        //sensorObjects[j]=radios[i].value;
+			        sensorObjects[j]=i;
+			        break;
+			    }
+			}
+		}
+
+            localStorage.setItem('sensorObjects', JSON.stringify(sensorObjects));
+            localStorage.setItem('calibratedReadings', JSON.stringify(calibratedReadings));
+            var url = 'http://192.168.43.140/?'+calibratedReadings[0]+':'+calibratedReadings[1]+':'+calibratedReadings[2]+':'+calibratedReadings[3]+':'+calibratedReadings[4]+':'+sensorObjects[0]+':'+sensorObjects[1]+':'+sensorObjects[2]+':'+sensorObjects[3]+':'+sensorObjects[4];
+            xhttp.open("GET", url , true);
+            xhttp.send();
+
+    	return false;
+	}
+	</script>  
+
+
+    </head>
+
+    <body>
+
+		
+		<!-- Top menu -->
+		<nav class="navbar navbar-inverse navbar-no-bg" role="navigation">
+			<div class="container">
+				<div class="navbar-header">
+					<img src="assets/ico/logo@2x.png" alt="Mountain View" style="width:288px;height:72px;">
+				</div>
+				<!-- Collect the nav links, forms, and other content for toggling -->
+				<div class="collapse navbar-collapse" id="top-navbar-1">
+					<ul class="nav navbar-nav navbar-right">
+						<li>
+                            <div id ="initializing">
+							<span class="li-text">
+								Initializing the Calibration...
+							</span> 
+						</div>
+
+						</li>
+
+					</ul>
+				</div>
+			</div>
+		</nav>
+
+        <!-- Top content -->
+        
+        <div class="top-content">
+        
+        <div id="chartContainer" style="height: 300px; width:  75%;  display: block; margin: auto;">
+		</div>
+            
+         
+            <div class="inner-bg" id = "message">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-10 col-sm-offset-1 form-box">
+
+	                    <form role="form" onsubmit="return sendData();"  action="" method="post" class="ac-custom ac-radio ac-fill" autocomplete="off">
+		                  <div class="slidingPanel">	
+								<h2>SENSOR 1 : I'm near my . . . </h2>
+								<ul class="list-inline" >
+									<li><input name="c1" value="Door" type="radio"><label for="cb6">Door</label></li>
+									<li><input name="c1" value="Table" type="radio" ><label for="cb6">Table</label></li>
+									<li><input name="c1" value="Bed" type="radio" ><label for="cb6">Bed</label></li>
+									<li><input name="c1" value="Wall" type="radio" ><label for="cb6">Wall</label></li>
+									</ul>
+								<div class="col-md-4 center-block">
+									<button class="btn btn-4 btn-4c icon-arrow-right next">Continue</button>
+								</div>
+								
+		                   </div>
+		                   <div class="slidingPanel">	
+								<h2>SENSOR 2 : I'm near my . . . </h2>
+								<ul class="list-inline">
+									<li><input name="c2" value="Door" type="radio" ><label for="cb6">Door</label></li>
+									<li><input name="c2" value="Table" type="radio"><label for="cb6">Table</label></li>
+									<li><input name="c2" value="Bed" type="radio"><label for="cb6">Bed</label></li>
+									<li><input name="c2" value="Wall" type="radio"><label for="cb6">Wall</label></li>
+									</ul>
+								<div class="col-md-4 center-block">
+									<button class="btn btn-4 btn-4c icon-arrow-right next">Continue</button>
+									<button class="btn btn-4 btn-4d icon-arrow-left back">Return</button>
+								</div>
+		                   </div>
+						   <div class="slidingPanel">	
+								<h2>SENSOR 3 : I'm near my . . . </h2>
+								<ul class="list-inline">
+									<li><input name="c3" value="Door" type="radio" ><label for="cb6">Door</label></li>
+									<li><input name="c3" value="Table" type="radio" ><label for="cb6">Table</label></li>
+									<li><input name="c3" value="Bed" type="radio" ><label for="cb6">Bed</label></li>
+									<li><input name="c3" value="Wall" type="radio" ><label for="cb6">Wall</label></li>
+									</ul>
+								<div class="col-md-4 center-block">
+									<button class="btn btn-4 btn-4c icon-arrow-right next">Continue</button>
+									<button class="btn btn-4 btn-4d icon-arrow-left back">Return</button>
+								</div>
+								
+		                   </div>
+						   <div class="slidingPanel">	
+								<h2>SENSOR 4 : I'm near my . . . </h2>
+								<ul class="list-inline">
+									<li><input name="c4" value="Door" type="radio" ><label for="cb6">Door</label></li>
+									<li><input name="c4" value="Table" type="radio" ><label for="cb6">Table</label></li>
+									<li><input name="c4" value="Bed" type="radio" ><label for="cb6">Bed</label></li>
+									<li><input name="c4" value="Wall" type="radio" ><label for="cb6">Wall</label></li>
+									</ul>
+								<div class="col-md-4 center-block">
+									<button class="btn btn-4 btn-4c icon-arrow-right next">Continue</button>
+									<button class="btn btn-4 btn-4d icon-arrow-left back">Return</button>
+								</div>
+								
+		                   </div>
+						 						   
+		                    <div class="slidingPanel">	
+								<h2>SENSOR 5 : I'm near my . . . </h2>
+								<ul class="list-inline">
+									<li><input name="c5" value="Door"  type="radio" ><label for="cb6">Door</label></li>
+									<li><input name="c5" value="Table" type="radio" ><label for="cb6">Table</label></li>
+									<li><input name="c5" value="Bed" type="radio" ><label for="cb6">Bed</label></li>
+									<li><input name="c5" value="Wall" type="radio" ><label for="cb6">Wall</label></li>
+									</ul>
+								<div class="col-md-4 center-block">
+									<button type="submit" class="btn">Finish Calibration!
+									</button>
+									
+								</div>
+								
+		                   </div>
+			                </form>
+
+
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+            
+            
+        </div>
+
+<form action="/control.html">
+<div class="btn pull-right""> 
+    <button id="singlebutton" class="btn btn-primary">Manual Control!</button> 
+</div>
+</form>
+        <!-- Javascript -->
+        <script src="assets/js/jquery-1.11.1.min.js"></script>
+        <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+        <script src="assets/js/jquery.backstretch.min.js"></script>
+        <script src="assets/js/retina-1.1.0.min.js"></script>
+        <script src="assets/js/scripts.js"></script>
+        
+        <!--[if lt IE 10]>
+            <script src="assets/js/placeholder.js"></script>
+        <![endif]-->
+        <script type="text/javascript">
+
+        	$(document).ready(function(){
+        		$("div.slidingPanel").hide();
+        		$(".slidingPanel").first().show();
+        	});
+        	$(".btn.next").click(function(e){
+        		e.preventDefault()
+        		$(this).closest(".slidingPanel").hide();//fadeOut(100).css("transform","translateX(30px)");
+
+        		$(this).closest(".slidingPanel").next('.slidingPanel').fadeIn(500);
+        	});
+        	$(".btn.back").click(function(e){
+        		e.preventDefault()
+        		$(this).closest(".slidingPanel").hide();//fadeOut(100).css("transform","translateX(-30px)");
+
+        		$(this).closest(".slidingPanel").prev('.slidingPanel').fadeIn(500);
+        	});
+
+        </script>
+			<script src="assets/js/classieb.js"></script>
+		<script>
+			var buttons7Click = Array.prototype.slice.call( document.querySelectorAll( '#btn-click button' ) ),
+				buttons9Click = Array.prototype.slice.call( document.querySelectorAll( 'button.btn-8g' ) ),
+				totalButtons7Click = buttons7Click.length,
+				totalButtons9Click = buttons9Click.length;
+
+			buttons7Click.forEach( function( el, i ) { el.addEventListener( 'click', activate, false ); } );
+			buttons9Click.forEach( function( el, i ) { el.addEventListener( 'click', activate, false ); } );
+
+			function activate() {
+				var self = this, activatedClass = 'btn-activated';
+
+				if( classie.has( this, 'btn-7h' ) ) {
+					// if it is the first of the two btn-7h then activatedClass = 'btn-error';
+					// if it is the second then activatedClass = 'btn-success'
+					activatedClass = buttons7Click.indexOf( this ) === totalButtons7Click-2 ? 'btn-error' : 'btn-success';
+				}
+				else if( classie.has( this, 'btn-8g' ) ) {
+					// if it is the first of the two btn-8g then activatedClass = 'btn-success3d';
+					// if it is the second then activatedClass = 'btn-error3d'
+					activatedClass = buttons9Click.indexOf( this ) === totalButtons9Click-2 ? 'btn-success3d' : 'btn-error3d';
+				}
+
+				if( !classie.has( this, activatedClass ) ) {
+					classie.add( this, activatedClass );
+					setTimeout( function() { classie.remove( self, activatedClass ) }, 1000 );
+				}
+			}
+
+			document.querySelector( '.btn-7i' ).addEventListener( 'click', function() {
+				classie.add( document.querySelector( '#trash-effect' ), 'trash-effect-active' );
+			}, false );
+		</script>
+		<script src="assets/js/svgcheckbx.js"></script>
+    </body>
+
+</html>
