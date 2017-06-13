@@ -1,4 +1,4 @@
-# Smart-Lamp-An-intelligent-IOT-lamp
+# Smart-Lamp-An-Intelligent-IOT-Lamp
 
 Full Arduino code is included.
 Network side implementation and technologies are discussed in networking report
